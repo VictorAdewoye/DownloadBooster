@@ -11,4 +11,96 @@ public class Connection {
     public Connection() {
         // Empty Constructor
     }
+
+    public void downloadWholeFile(IConnectionFileDownload callBack) {
+
+        try {
+            URL url  = new URL("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+            httpURLConnection.connect();
+
+            int statusCode = httpURLConnection.getResponseCode();
+
+            switch (statusCode) {
+                case HttpURLConnection.HTTP_OK: // 200
+
+                    InputStream inputStream = httpURLConnection.getInputStream();
+
+                    if (inputStream != null) {
+                        callBack.getFileResult(inputStream);
+                    } else {
+                        callBack.errorOccured("Error Occurred when trying to connect with the Server");
+                    }
+
+                    break;
+                 case HttpURLConnection.HTTP_FORBIDDEN:
+                 case HttpURLConnection.HTTP_NOT_FOUND:
+                     callBack.errorOccured("No File Found");
+
+                    break;
+            }
+        }
+        catch(Exception exception) {
+            callBack.errorOccured(exception.getMessage());
+        }
+
+    }
+
+    public void downloadFileByRange(IConnectionFileDownload callBack) {
+
+        String strLastModified = "";
+
+        try {
+            URL url  = new URL("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+            httpURLConnection.setRequestProperty("Range","bytes=" + 0+ "-" + 348 * 1024 * 1024);
+
+            httpURLConnection.connect();
+
+            int serverLengthFile = httpURLConnection.getContentLength();
+
+            int statusCode = httpURLConnection.getResponseCode();
+
+            InputStream inputStream;
+
+            switch (statusCode) {
+                case HttpURLConnection.HTTP_OK: // 200
+
+                     inputStream = httpURLConnection.getInputStream();
+
+                    if (inputStream != null) {
+                        callBack.getFileResult(inputStream);
+                    } else {
+                        callBack.errorOccured("Error Occurred when trying to connect with the Server");
+                    }
+
+                    break;
+
+                case HttpURLConnection.HTTP_PARTIAL:
+                    Log.i("called", "partial: ");
+
+                     inputStream = httpURLConnection.getInputStream();
+
+                    if (inputStream != null) {
+                        callBack.getFileResult(inputStream);
+                    } else {
+                        callBack.errorOccured("Error Occurred when trying to connect with the Server");
+                    }
+                    break;
+                 case HttpURLConnection.HTTP_FORBIDDEN:
+                 case HttpURLConnection.HTTP_NOT_FOUND:
+                     callBack.errorOccured("No File Found");
+
+                    break;
+            }
+        }
+        catch(Exception exception) {
+            callBack.errorOccured(exception.getMessage());
+        }
+
+    }
 }
