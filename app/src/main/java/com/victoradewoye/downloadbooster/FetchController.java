@@ -54,38 +54,65 @@ public class FetchController {
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
-                connection.downloadWholeFile(new IConnectionFileDownload() {
-                    @Override
-                    public void getFileResult(InputStream inputStream) {
-                        String path = fileStorageDirectory.getPath();
+                int maxNumberOfServerRequest = 4;
 
-                        File outputFile = new File(path + File.separator + "348Test.jar");
+                final long totalDownloadSize = 4194308;
 
-                        try {
-                            OutputStream outputStream = new FileOutputStream(outputFile);
+                long endChunkSize = 1048577; // this the equivalent of 1MB in bytes.
 
-                            byte[] buffer = new byte[16 * 1500];
+                long startChunkSize = 0;
 
-                            int bytesRead = 0;
+                String path = fileStorageDirectory.getPath();
 
-                            while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
-                                outputStream.write(buffer, 0, bytesRead);
+                final File outputFile = new File(path + File.separator + "384Test.jar");
+
+                for (int i = 0; i < maxNumberOfServerRequest; i++) {
+
+                    long outputFileSize = outputFile.length();
+
+                    if (outputFileSize != 0) {
+                        startChunkSize = outputFile.length();
+                    }
+
+                    if (!(outputFileSize >= totalDownloadSize)) {
+                        connection.downloadFileByRange(new IConnectionFileDownload() {
+                            @Override
+                            public void getFileResult(InputStream inputStream) {
+
+                                try {
+                                    OutputStream outputStream = outputFile.length() == 0 ? new FileOutputStream(outputFile) :  new FileOutputStream(outputFile, true);
+
+                                    byte[] buffer = new byte[16 * 1500];
+
+                                    int bytesRead = 0;
+
+                                    while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
+                                        outputStream.write(buffer, 0, bytesRead);
+                                    }
+                                    outputStream.close();
+
+                                    if(outputFile.length() >= totalDownloadSize ) {
+                                        callBack.onComplete(outputFile);
+                                    }
+                                } catch(Exception exception) {
+                                    callBack.errorOccured(exception.getMessage());
+                                }
                             }
 
-                            outputStream.close();
+                            @Override
+                            public void errorOccured(String error) {
+                                Log.i("Report", "errorOccured: ");
+                            }
+                        }, startChunkSize, endChunkSize);
 
-                            callBack.onComplete(outputFile);
+                        endChunkSize = endChunkSize + 1048577;
+                    } else {
+                        Log.i("iNFO", "THE SPECIFIED FILE RANGE HAS BEEN DOWNLOADED: ");
 
-                        } catch(Exception exception) {
-                            callBack.errorOccured(exception.getMessage());
-                        }
+                        break;
                     }
 
-                    @Override
-                    public void errorOccured(String error) {
-                        Log.i("Report", "errorOccured: ");
-                    }
-                });
+                }
             }
         });
     }
