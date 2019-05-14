@@ -1,7 +1,9 @@
 package com.victoradewoye.downloadbooster;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.File;
@@ -68,7 +70,7 @@ public class FetchController {
 
                 for (int i = 0; i < maxNumberOfServerRequest; i++) {
 
-                    long outputFileSize = outputFile.length();
+                    final long outputFileSize = outputFile.length();
 
                     if (outputFileSize != 0) {
                         startChunkSize = outputFile.length();
@@ -86,14 +88,25 @@ public class FetchController {
 
                                     int bytesRead = 0;
 
+                                    long total = outputFileSize;
+
                                     while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
                                         outputStream.write(buffer, 0, bytesRead);
+
+                                        total += bytesRead;
+
+                                        Intent intent = new Intent("update");
+
+                                        intent.putExtra("update_Value", total);
+
+                                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                                     }
                                     outputStream.close();
 
                                     if(outputFile.length() >= totalDownloadSize ) {
                                         callBack.onComplete(outputFile);
                                     }
+
                                 } catch(Exception exception) {
                                     callBack.errorOccured(exception.getMessage());
                                 }
