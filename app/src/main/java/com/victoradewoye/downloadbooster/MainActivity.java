@@ -7,14 +7,13 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
         this.registerForProgressBarUpdateDownloadingStatus();
     }
 
-    public void clickDownlaod(View view) {
-        FetchController.shared().fetchFile(new IFetchFileDownload() {
+    public void clickDownload(View view) {
+        FetchController.shared().parallelFetchFile(new IFetchFileDownload() {
             @Override
             public void onComplete(Object fileObject) {
 //                Toast.makeText(MainActivity.this, " Download Successful,", Toast.LENGTH_SHORT).show();
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void errorOccured(String error) {
-                Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -76,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     if (progress > downloadProgressBar.getProgress()) {
-                                        downloadProgressBar.setProgress((int)progress);
+                                        downloadProgressBar.setProgress((int) progress);
                                     }
                                 }
                             });
