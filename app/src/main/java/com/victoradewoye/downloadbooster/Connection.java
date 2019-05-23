@@ -44,17 +44,16 @@ public class Connection {
         } catch (Exception exception) {
             callBack.errorOccured(exception.getMessage());
         }
-
     }
 
-    public void downloadFileByRange(IConnectionFileDownload callBack, long startChunkSize, long endChunkSize) {
+    public void downloadFileByRange(String url, IConnectionFileDownload callBack, long startChunkSize, long endChunkSize) {
 
         String strLastModified = "";
 
         try {
-            URL url = new URL("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+            URL downloadUrl = new URL(url);
 
-            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            HttpURLConnection httpURLConnection = (HttpURLConnection) downloadUrl.openConnection();
 
             httpURLConnection.setRequestProperty("Range", "bytes=" + startChunkSize + "-" + endChunkSize);
 

@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -59,6 +60,7 @@ public class FetchController {
     }
 
     public void fetchFile(final IFetchFileDownload callBack) {
+    public void fetchFile(final String url, final IFetchFileDownload callBack) {
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
@@ -83,7 +85,7 @@ public class FetchController {
                     }
 
                     if (!(outputFileSize >= totalDownloadSize)) {
-                        connection.downloadFileByRange(new IConnectionFileDownload() {
+                        connection.downloadFileByRange(url, new IConnectionFileDownload() {
                             @Override
                             public void getFileResult(InputStream inputStream) {
 
@@ -145,6 +147,7 @@ public class FetchController {
         final List<Future<InputStream>> futures = new ArrayList<>();
 
         AsyncTask.execute(new Runnable() {
+    public void parallelFetchFile(final String url, final IFetchFileDownload callBack) {
             @Override
             public void run() {
 

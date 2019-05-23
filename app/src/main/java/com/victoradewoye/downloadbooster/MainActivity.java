@@ -12,8 +12,27 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.view.View;
+import android.webkit.URLUtil;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.ProgressBar;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.File;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnTextChanged;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BroadcastReceiver progressBarDownloadStatus;
 
+    private String urlValue;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FetchController.shared().setUpFetchController(this);
+        this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
     }
 
     @Override
@@ -44,20 +65,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         this.registerForProgressBarUpdateDownloadingStatus();
-    }
-
-    public void clickDownload(View view) {
-        FetchController.shared().parallelFetchFile(new IFetchFileDownload() {
-            @Override
-            public void onComplete(Object fileObject) {
-//                Toast.makeText(MainActivity.this, " Download Successful,", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void errorOccured(String error) {
-//                Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void registerForProgressBarUpdateDownloadingStatus() {
@@ -90,5 +97,52 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction("update");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(this.progressBarDownloadStatus, intentFilter);
+    }
+    public void fullDownload(View view) {
+        FetchController.shared().fetchFile(urlValue, new IFetchFileDownload() {
+            @Override
+            public void onComplete(Object fileObject) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, " Download Successful", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void errorOccured(String error) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    public void parallelDownload(View view) {
+        FetchController.shared().parallelFetchFile(urlValue, new IFetchFileDownload() {
+            @Override
+            public void onComplete(Object fileObject) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, " Download Successful", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void errorOccured(String error) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 }
