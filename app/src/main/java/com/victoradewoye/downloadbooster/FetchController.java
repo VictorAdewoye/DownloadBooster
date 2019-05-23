@@ -252,4 +252,27 @@ public class FetchController {
         return chunkRequest;
     }
 
+    public ArrayList<Integer> factorsOf(int num) {
+        ArrayList<Integer> factors = new ArrayList<>();
+
+            for (int i = 1; i <= Math.sqrt(num); i++) {
+                if (num % i == 0) {
+                    int f1 = i;
+                    int f2 = num / i;
+
+                    if (f1 <= f2) {
+                        if (!factors.contains(f1)) {
+                            factors.add(f1);
+                            if (!factors.contains(f2)) {
+                                factors.add(f2);
+                            }
+                        }
+                    }
+                }
+            }
+
+        Collections.sort(factors);
+
+        return factors;
+    }
 }
