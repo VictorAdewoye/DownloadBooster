@@ -75,8 +75,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FetchController.shared().setUpFetchController(this);
+
+        this.setPicker();
+
         this.setUpSwitch();
+
         this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+
         FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
     }
 
@@ -117,6 +122,78 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction("update");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(this.progressBarDownloadStatus, intentFilter);
+    }
+
+    public void setPicker() {
+
+        this.firstPickerValueProtocol.setDisplayedValues(null);
+        this.secondPickerValueProtocol.setDisplayedValues(null);
+
+        ArrayList<String> totalDownloadSizeValues =  new ArrayList<>();
+
+        for (int i = 1; i < 385; i++) {
+            totalDownloadSizeValues.add(String.valueOf(i));
+        }
+
+        String[] newDisplayValues = new String[totalDownloadSizeValues.size()-1];
+        newDisplayValues = totalDownloadSizeValues.toArray(newDisplayValues);
+
+        this.firstPickerValueProtocol.setMinValue(1);
+        this.firstPickerValueProtocol.setMaxValue(384);
+        this.firstPickerValueProtocol.setDisplayedValues(newDisplayValues);
+        this.firstPickerValueProtocol.setWrapSelectorWheel(true);
+
+        this.firstPickerValueProtocol.setValue(4);
+
+        ArrayList<Integer> chunkSizeArray = FetchController.shared().factorsOf(firstPickerValueProtocol.getValue());
+
+        String[] factorsArray = Utility.convertIntegerArrayListToStringArray(chunkSizeArray);
+
+        secondPickerValueProtocol.setMinValue(1);
+        secondPickerValueProtocol.setMaxValue(factorsArray.length);
+        secondPickerValueProtocol.setDisplayedValues(factorsArray);
+        this.secondPickerValueProtocol.setWrapSelectorWheel(false);
+
+        this.thirdPickerValueProtocol.setText(String.valueOf((firstPickerValueProtocol.getValue())/secondPickerValueProtocol.getValue()));
+
+        this.firstPickerValueProtocol.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                ArrayList<Integer> chunkSizeArray = FetchController.shared().factorsOf(firstPickerValueProtocol.getValue());
+
+                String[] factorsArray = Utility.convertIntegerArrayListToStringArray(chunkSizeArray);
+
+                secondPickerValueProtocol.setDisplayedValues(null);
+
+                secondPickerValueProtocol.setMinValue(1);
+                secondPickerValueProtocol.setMaxValue(factorsArray.length);
+                secondPickerValueProtocol.setDisplayedValues(factorsArray);
+
+                int chunkSize = secondPickerValueProtocol.getValue();
+
+                if (chunkSize != 0) {
+                    thirdPickerValueProtocol.setText(String.valueOf(newVal / chunkSize));
+                }
+
+                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
+            }
+        });
+
+        this.secondPickerValueProtocol.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+
+                int dDownloadSize = firstPickerValueProtocol.getValue();
+                int chunkSize = picker.getValue();
+
+                if (chunkSize != 0) {
+                    thirdPickerValueProtocol.setText(String.valueOf(dDownloadSize / chunkSize));
+                }
+
+                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
+            }
+
+        });
     }
 
     private void setUpSwitch() {
