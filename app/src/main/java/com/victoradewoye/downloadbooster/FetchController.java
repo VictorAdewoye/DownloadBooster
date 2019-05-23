@@ -30,6 +30,10 @@ public class FetchController {
     private int numberOfChunks;
     private long chunkSize;
     private long mtotalDownloadSize;
+
+
+    private Thread myThread = null;
+
     public FetchController() {
 
     }
@@ -145,28 +149,24 @@ public class FetchController {
 
                         break;
                     }
-
                 }
             }
         });
     }
 
-    public void parallelFetchFile(final IFetchFileDownload callBack) {
-
-        int MYTHREADS = 4;
-
-        final ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
-
-        final List<Future<InputStream>> futures = new ArrayList<>();
-
-        AsyncTask.execute(new Runnable() {
     public void parallelFetchFile(final String url, final IFetchFileDownload callBack) {
+        myThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                int MYTHREADS = numberOfChunks;
 
-                final long totalDownloadSize = 4194308;
+                final ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
 
-                long endChunkSize = 1048577; // this the equivalent of 1MB in bytes.
+                final List<Future<InputStream>> futures = new ArrayList<>();
+
+                final long totalDownloadSize = mtotalDownloadSize;
+
+                long endChunkSize = chunkSize; // this the equivalent of 1MB in bytes. and it is also configurable
 
                 long startChunkSize = 0;
 
@@ -174,78 +174,87 @@ public class FetchController {
 
                 final File outputFile = new File(path + File.separator + "384Test.jar");
 
-                for (long i = startChunkSize; i < totalDownloadSize; i += 1048577) {
+                if (!(outputFile.length() >= totalDownloadSize)) {
+                    for (long i = startChunkSize; i < totalDownloadSize; i += chunkSize) {
 
-                    Future<InputStream> future = executor.submit(parallelRunnableObject(i, endChunkSize));
+                        Future<InputStream> future = executor.submit(FetchController.shared().parallelRunnableObject(url, i, endChunkSize));
 
-                    futures.add(future);
+                        futures.add(future);
 
-                    endChunkSize += 1048577;
+                        endChunkSize += chunkSize;
 
-                }
-
-                for (Future<InputStream> f : futures) {
-                    final long outputFileSize = outputFile.length();
-                    try {
-                        OutputStream outputStream = outputFile.length() == 0 ? new FileOutputStream(outputFile) : new FileOutputStream(outputFile, true);
-
-                        byte[] buffer = new byte[16 * 1500];
-
-                        int bytesRead = 0;
-
-                        long total = outputFileSize;
-
-                        InputStream inputStream = f.get();
-
-                        if (inputStream != null) {
-
-                            while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
-                                outputStream.write(buffer, 0, bytesRead);
-
-                                total += bytesRead;
-
-                                Intent intent = new Intent("update");
-
-                                intent.putExtra("update_Value", total);
-
-                                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                            }
-
-                        }
-                        outputStream.close();
-
-                        if (outputFile.length() >= totalDownloadSize) {
-                            callBack.onComplete(outputFile);
-                        }
-
-                    } catch (InterruptedException | ExecutionException ex) {
-                        callBack.errorOccured(ex.getMessage());
-                    } catch (Exception exception) {
-                        callBack.errorOccured(exception.getMessage());
                     }
 
-                }
+                    for (Future<InputStream> f : futures) {
+                        final long outputFileSize = outputFile.length();
+                        try {
+                            OutputStream outputStream = outputFile.length() == 0 ? new FileOutputStream(outputFile) : new FileOutputStream(outputFile, true);
 
-                try {
-                    executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                            byte[] buffer = new byte[16 * 1500];
 
-                executor.shutdown();
+                            int bytesRead = 0;
+
+                            long sizeofFileDownloaded = outputFileSize;
+
+                            InputStream inputStream = f.get();
+
+                            if (inputStream != null) {
+
+                                while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
+                                    outputStream.write(buffer, 0, bytesRead);
+
+                                    sizeofFileDownloaded += bytesRead;
+
+                                    Intent intent = new Intent("update");
+
+                                    intent.putExtra("update_Value", sizeofFileDownloaded);
+
+                                    intent.putExtra("progress_bar_max_value", totalDownloadSize);
+
+                                    LocalBroadcastManager.getInstance(FetchController.shared().getContext()).sendBroadcast(intent);
+                                }
+
+                            }
+                            outputStream.close();
+
+                            if (outputFile.length() >= totalDownloadSize) {
+                                callBack.onComplete(outputFile);
+                            }
+
+                        } catch (InterruptedException | ExecutionException ex) {
+                            callBack.errorOccured(ex.getMessage());
+                        } catch (Exception exception) {
+                            callBack.errorOccured(exception.getMessage());
+                        }
+                    }
+
+                    try {
+                        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    executor.shutdown();
+
+//                    myThread.interrupt();
+                } else {
+                    Log.i("iNFO", "THE SPECIFIED FILE RANGE HAS BEEN DOWNLOADED: ");
+                }
             }
         });
+
+        myThread.start();
+
     }
 
-
-    private Callable<InputStream> parallelRunnableObject(final long startChunkSize, final long endChunkSize) {
+    private Callable<InputStream> parallelRunnableObject(final String url, final long startChunkSize, final long endChunkSize) {
 
         Callable<InputStream> chunkRequest = new Callable<InputStream>() {
             @Override
             public InputStream call() throws Exception {
                 final InputStream[] chunkInputStream = {null};
 
-                connection.downloadFileByRange(new IConnectionFileDownload() {
+                connection.downloadFileByRange(url, new IConnectionFileDownload() {
                     @Override
                     public void getFileResult(InputStream inputStream) {
 
