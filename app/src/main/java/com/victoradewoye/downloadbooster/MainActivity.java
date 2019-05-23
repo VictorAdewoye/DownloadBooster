@@ -99,18 +99,28 @@ public class MainActivity extends AppCompatActivity {
                 if (intent != null) {
                     final String action = intent.getAction();
                     if (action != null && action.equals("update")) {
-                        if (intent.hasExtra("update_Value")) {
 
+                        if (intent.hasExtra("update_Value") && intent.hasExtra("progress_bar_max_value")) {
                             final long progress = intent.getLongExtra("update_Value", 0L);
+
+                            final long maxValue = intent.getLongExtra("progress_bar_max_value", 0L);
 
                             new Handler(Looper.getMainLooper()).post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    downloadProgressBar.setMax((int) maxValue);
+
                                     if (progress > downloadProgressBar.getProgress()) {
                                         downloadProgressBar.setProgress((int) progress);
                                     }
                                 }
                             });
+
+                            fileSize.setText("Downloaded file size: " + FetchController.shared().getTotalCacheFileSize());
+                        } else {
+                            downloadProgressBar.setProgress(0);
+
+                            fileSize.setText("Downloaded file size: " + FetchController.shared().getTotalCacheFileSize());
                         }
                     }
                 }
