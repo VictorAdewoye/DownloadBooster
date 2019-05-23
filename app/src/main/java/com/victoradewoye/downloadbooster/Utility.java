@@ -7,7 +7,7 @@ public class Utility {
     public static String[] convertIntegerArrayListToStringArray(ArrayList<Integer> integerArrayList) {
         ArrayList<String> stringFactorsArray = new ArrayList<>();
 
-        for (Integer i: integerArrayList) {
+        for (Integer i : integerArrayList) {
             stringFactorsArray.add(String.valueOf(i));
         }
 

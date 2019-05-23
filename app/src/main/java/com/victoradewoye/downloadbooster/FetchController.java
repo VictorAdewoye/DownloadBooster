@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -211,7 +212,7 @@ public class FetchController {
 
                                     intent.putExtra("progress_bar_max_value", totalDownloadSize);
 
-                                    LocalBroadcastManager.getInstance(FetchController.shared().getContext()).sendBroadcast(intent);
+                                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                                 }
 
                             }
@@ -277,21 +278,21 @@ public class FetchController {
     public ArrayList<Integer> factorsOf(int num) {
         ArrayList<Integer> factors = new ArrayList<>();
 
-            for (int i = 1; i <= Math.sqrt(num); i++) {
-                if (num % i == 0) {
-                    int f1 = i;
-                    int f2 = num / i;
+        for (int i = 1; i <= Math.sqrt(num); i++) {
+            if (num % i == 0) {
+                int f1 = i;
+                int f2 = num / i;
 
-                    if (f1 <= f2) {
-                        if (!factors.contains(f1)) {
-                            factors.add(f1);
-                            if (!factors.contains(f2)) {
-                                factors.add(f2);
-                            }
+                if (f1 <= f2) {
+                    if (!factors.contains(f1)) {
+                        factors.add(f1);
+                        if (!factors.contains(f2)) {
+                            factors.add(f2);
                         }
                     }
                 }
             }
+        }
 
         Collections.sort(factors);
 

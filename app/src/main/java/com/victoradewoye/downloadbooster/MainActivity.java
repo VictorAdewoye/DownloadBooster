@@ -18,15 +18,12 @@ import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import butterknife.Bind;
@@ -36,26 +33,32 @@ import butterknife.OnTextChanged;
 
 public class MainActivity extends AppCompatActivity {
 
+    @Bind(R.id.firstPickerName)
+    TextView firstPickerName;
+    @Bind(R.id.secondPickerName)
+    TextView secondPickerName;
+    @Bind(R.id.thirdPickerName)
+    TextView thirdPickerName;
+    @Bind(R.id.firstPickerValueProtocol)
+    NumberPicker firstPickerValueProtocol;
+    @Bind(R.id.secondPickerValueProtocol)
+    NumberPicker secondPickerValueProtocol;
+    @Bind(R.id.thirdPickerValueProtocol)
+    TextView thirdPickerValueProtocol;
+    @Bind(R.id.toggleSwitch)
+    Switch toggleSwitch;
+    @Bind(R.id.parallelDownload)
+    Button parallelDownload;
+    @Bind(R.id.serialDownload)
+    Button serialDownload;
+    @Bind(R.id.fileSize)
+    TextView fileSize;
+    @Bind(R.id.deleteButton)
+    Button deleteButton;
+    @Bind(R.id.sourceUrl)
+    EditText sourceUrl;
     private ProgressBar downloadProgressBar;
-
     private BroadcastReceiver progressBarDownloadStatus;
-
-    @Bind(R.id.firstPickerName) TextView firstPickerName;
-    @Bind(R.id.secondPickerName) TextView secondPickerName;
-    @Bind(R.id.thirdPickerName) TextView thirdPickerName;
-    @Bind(R.id.firstPickerValueProtocol) NumberPicker firstPickerValueProtocol;
-    @Bind(R.id.secondPickerValueProtocol) NumberPicker secondPickerValueProtocol;
-    @Bind(R.id.thirdPickerValueProtocol) TextView thirdPickerValueProtocol;
-
-    @Bind(R.id.toggleSwitch) Switch toggleSwitch;
-
-    @Bind(R.id.parallelDownload) Button parallelDownload;
-
-    @Bind(R.id.serialDownload) Button serialDownload;
-    @Bind(R.id.fileSize) TextView fileSize;
-    @Bind(R.id.deleteButton) Button deleteButton;
-    @Bind(R.id.sourceUrl) EditText sourceUrl;
-
     private String urlValue;
 
 
@@ -139,13 +142,13 @@ public class MainActivity extends AppCompatActivity {
         this.firstPickerValueProtocol.setDisplayedValues(null);
         this.secondPickerValueProtocol.setDisplayedValues(null);
 
-        ArrayList<String> totalDownloadSizeValues =  new ArrayList<>();
+        ArrayList<String> totalDownloadSizeValues = new ArrayList<>();
 
         for (int i = 1; i < 385; i++) {
             totalDownloadSizeValues.add(String.valueOf(i));
         }
 
-        String[] newDisplayValues = new String[totalDownloadSizeValues.size()-1];
+        String[] newDisplayValues = new String[totalDownloadSizeValues.size() - 1];
         newDisplayValues = totalDownloadSizeValues.toArray(newDisplayValues);
 
         this.firstPickerValueProtocol.setMinValue(1);
@@ -164,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         secondPickerValueProtocol.setDisplayedValues(factorsArray);
         this.secondPickerValueProtocol.setWrapSelectorWheel(false);
 
-        this.thirdPickerValueProtocol.setText(String.valueOf((firstPickerValueProtocol.getValue())/secondPickerValueProtocol.getValue()));
+        this.thirdPickerValueProtocol.setText(String.valueOf((firstPickerValueProtocol.getValue()) / secondPickerValueProtocol.getValue()));
 
         this.firstPickerValueProtocol.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
