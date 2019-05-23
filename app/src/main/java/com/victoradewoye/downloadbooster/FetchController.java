@@ -27,6 +27,9 @@ public class FetchController {
     private Context context;
     private File fileStorageDirectory;
 
+    private int numberOfChunks;
+    private long chunkSize;
+    private long mtotalDownloadSize;
     public FetchController() {
 
     }
@@ -59,16 +62,24 @@ public class FetchController {
 
     }
 
-    public void fetchFile(final IFetchFileDownload callBack) {
+    public void setUpParameters(int numberOfChunks, long chunkSize, long totalDownloadSize) {
+
+        this.numberOfChunks = numberOfChunks;
+
+        this.chunkSize = chunkSize * 1048577;
+
+        this.mtotalDownloadSize = totalDownloadSize * 1048577;
+    }
+
     public void fetchFile(final String url, final IFetchFileDownload callBack) {
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
-                int maxNumberOfServerRequest = 4;
+                int maxNumberOfServerRequest = numberOfChunks;
 
-                final long totalDownloadSize = 4194308;
+                final long totalDownloadSize = mtotalDownloadSize;
 
-                long endChunkSize = 1048577; // this the equivalent of 1MB in bytes.
+                long endChunkSize = chunkSize; // this the equivalent of 1MB in bytes.
 
                 long startChunkSize = 0;
 
@@ -96,16 +107,18 @@ public class FetchController {
 
                                     int bytesRead = 0;
 
-                                    long total = outputFileSize;
+                                    long sizeofFileDownloaded = outputFileSize;
 
                                     while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) >= 0) {
                                         outputStream.write(buffer, 0, bytesRead);
 
-                                        total += bytesRead;
+                                        sizeofFileDownloaded += bytesRead;
 
                                         Intent intent = new Intent("update");
 
-                                        intent.putExtra("update_Value", total);
+                                        intent.putExtra("update_Value", sizeofFileDownloaded);
+
+                                        intent.putExtra("progress_bar_max_value", totalDownloadSize);
 
                                         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                                     }
