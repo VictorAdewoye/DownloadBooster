@@ -40,15 +40,33 @@ public class MainActivity extends AppCompatActivity {
 
     private BroadcastReceiver progressBarDownloadStatus;
 
+    @Bind(R.id.firstPickerName) TextView firstPickerName;
+    @Bind(R.id.secondPickerName) TextView secondPickerName;
+    @Bind(R.id.thirdPickerName) TextView thirdPickerName;
+    @Bind(R.id.firstPickerValueProtocol) NumberPicker firstPickerValueProtocol;
+    @Bind(R.id.secondPickerValueProtocol) NumberPicker secondPickerValueProtocol;
+    @Bind(R.id.thirdPickerValueProtocol) TextView thirdPickerValueProtocol;
+
+    @Bind(R.id.toggleSwitch) Switch toggleSwitch;
+
+    @Bind(R.id.parallelDownload) Button parallelDownload;
+
+    @Bind(R.id.serialDownload) Button serialDownload;
+    @Bind(R.id.fileSize) TextView fileSize;
+    @Bind(R.id.deleteButton) Button deleteButton;
+    @Bind(R.id.sourceUrl) EditText sourceUrl;
+
     private String urlValue;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        downloadProgressBar = findViewById(R.id.downloadProgressBar);
+        ButterKnife.bind(this);
 
-        downloadProgressBar.setMax(4194308);
+        downloadProgressBar = findViewById(R.id.downloadProgressBar);
 
         this.downloadProgressBar.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
 
@@ -57,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FetchController.shared().setUpFetchController(this);
+        this.setUpSwitch();
         this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
     }
 
     @Override
@@ -98,6 +118,34 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(this.progressBarDownloadStatus, intentFilter);
     }
+
+    private void setUpSwitch() {
+        serialDownload.setEnabled(false);
+        parallelDownload.setEnabled(false);
+        serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+        parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+
+        this.toggleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+
+                    serialDownload.setEnabled(false);
+                    serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+                    parallelDownload.setEnabled(true);
+                    parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
+
+
+                } else {
+                    serialDownload.setEnabled(true);
+                    serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
+                    parallelDownload.setEnabled(false);
+                    parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
+    }
+
     public void fullDownload(View view) {
         FetchController.shared().fetchFile(urlValue, new IFetchFileDownload() {
             @Override
@@ -144,5 +192,31 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @OnClick(R.id.deleteButton)
+    public void onDeleteButtonClick(View v) {
+        FetchController.shared().clearDirectory();
+    }
+
+
+    @OnTextChanged(value = R.id.sourceUrl, callback = OnTextChanged.Callback.AFTER_TEXT_CHANGED)
+    public void afterTextChanged(Editable editable) {
+        urlValue = this.sourceUrl.getText().toString().trim();
+
+        if (!editable.toString().equals("")) {
+            if (URLUtil.isValidUrl(urlValue)) {
+                parallelDownload.setEnabled(false);
+                serialDownload.setEnabled(true);
+                serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
+                parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+            }
+        } else {
+            parallelDownload.setEnabled(false);
+            serialDownload.setEnabled(false);
+            serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+            parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+        }
+
     }
 }
