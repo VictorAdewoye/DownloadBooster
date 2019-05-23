@@ -275,4 +275,71 @@ public class FetchController {
 
         return factors;
     }
+
+
+    private long getCacheFolderSize(File file) {
+        long size = 0;
+
+        if (file.isDirectory()) {
+            if (file.listFiles() != null) {
+                for (File subFileChild : file.listFiles()) {
+                    if (subFileChild.isFile()) {
+                        size += subFileChild.length();
+                    } else {
+                        size += getCacheFolderSize(subFileChild);
+                    }
+                }
+            } else {
+                return 0L;
+            }
+        } else {
+            return file.length();
+        }
+
+        return size;
+    }
+
+    private String readableFolderSize(long size) {
+        if (size <= 0) {
+            return "Zero KB";
+        }
+
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+
+        return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    protected String getTotalCacheFileSize() {
+        long totalSize = getCacheFolderSize(this.fileStorageDirectory);
+
+        return readableFolderSize(totalSize);
+    }
+
+    // Delete Files of a specific Directory Folder.
+    protected void clearDirectory() {
+        File directoryFile = this.fileStorageDirectory;
+
+        if (directoryFile.isDirectory()) {
+            File fileToBeDeleted = null;
+            String[] children = directoryFile.list();
+
+            for (int i = 0; i < children.length; i++) {
+                fileToBeDeleted = new File(directoryFile, children[i]);
+
+                fileToBeDeleted.delete();
+            }
+        } else if (directoryFile.isFile()) {
+            directoryFile.delete();
+        } else {
+            Log.i("Error", "emptyDirectory: Did not work");
+        }
+
+        if (getCacheFolderSize(this.fileStorageDirectory) <= 0) {
+            Intent intent = new Intent("update");
+
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+    }
+
 }
