@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Download Booster</string>
+    <string name="activate_parallel_download">Activate Parallel Download</string>
 </resources>
