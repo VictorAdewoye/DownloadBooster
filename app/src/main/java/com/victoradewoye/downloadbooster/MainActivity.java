@@ -126,9 +126,7 @@ public class MainActivity extends AppCompatActivity {
                                 public void run() {
                                     downloadProgressBar.setMax((int) maxValue);
 
-                                    if (progress > downloadProgressBar.getProgress()) {
-                                        downloadProgressBar.setProgress((int) progress);
-                                    }
+                                    downloadProgressBar.setProgress((int) progress);
                                 }
                             });
 
@@ -229,27 +227,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUpSwitch() {
-        serialDownload.setEnabled(false);
-        parallelDownload.setEnabled(false);
-        serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
-        parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+        toggleSerialAndDownloadButton(false, false);
 
         this.toggleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-
-                    serialDownload.setEnabled(false);
-                    serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
-                    parallelDownload.setEnabled(true);
-                    parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
-
-
+                    toggleSerialAndDownloadButton(false, true);
                 } else {
-                    serialDownload.setEnabled(true);
-                    serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
-                    parallelDownload.setEnabled(false);
-                    parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+                    toggleSerialAndDownloadButton(true, false);
                 }
             }
         });
@@ -345,16 +331,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (!editable.toString().equals("")) {
             if (URLUtil.isValidUrl(urlValue)) {
-                parallelDownload.setEnabled(false);
-                serialDownload.setEnabled(true);
-                serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
-                parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+                toggleSerialAndDownloadButton(true, false);
+            } else {
+                Toast.makeText(this, "Please enter a valid url", Toast.LENGTH_SHORT).show();
             }
         } else {
-            parallelDownload.setEnabled(false);
-            serialDownload.setEnabled(false);
-            serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
-            parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+            toggleSerialAndDownloadButton(false, false);
         }
 
     }
@@ -367,5 +349,25 @@ public class MainActivity extends AppCompatActivity {
                     isExternalStorage = true;
                 }
         }
+    }
+
+
+    public void toggleSerialAndDownloadButton(boolean enableSerialDownloadButton, boolean enableParallelDownLoadButton) {
+        if (enableSerialDownloadButton) {
+            serialDownload.setEnabled(true);
+            serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            serialDownload.setEnabled(false);
+            serialDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+        }
+
+        if (enableParallelDownLoadButton) {
+            parallelDownload.setEnabled(true);
+            parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            parallelDownload.setEnabled(false);
+            parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
+        }
+
     }
 }
