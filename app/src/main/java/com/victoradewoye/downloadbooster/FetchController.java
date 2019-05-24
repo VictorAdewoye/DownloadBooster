@@ -158,7 +158,7 @@ public class FetchController {
 
                         endChunkSize += chunkSize;
                     } else {
-                        Log.i("iNFO", "THE SPECIFIED FILE RANGE HAS BEEN DOWNLOADED: ");
+                        callBack.errorOccurred("The specified file size has been downloaded");
 
                         break;
                     }
@@ -171,9 +171,9 @@ public class FetchController {
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int MYTHREADS = numberOfChunks;
+                int parallelThreads = numberOfChunks;
 
-                final ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
+                final ExecutorService executor = Executors.newFixedThreadPool(parallelThreads);
 
                 final List<Future<InputStream>> futures = new ArrayList<>();
 
