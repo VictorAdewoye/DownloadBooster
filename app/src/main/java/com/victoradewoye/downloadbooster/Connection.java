@@ -12,12 +12,15 @@ public class Connection {
         // Empty Constructor
     }
 
-    public void downloadFileByRange(String url, IConnectionFileDownload callBack, long startChunkSize, long endChunkSize) {
+    public void downloadFileByRange(String url, boolean isParallelDownload, IConnectionFileDownload callBack, long startChunkSize, long endChunkSize) {
+        HttpURLConnection httpURLConnection = null;
 
         try {
             URL downloadUrl = new URL(url);
 
-            HttpURLConnection httpURLConnection = (HttpURLConnection) downloadUrl.openConnection();
+            httpURLConnection = (HttpURLConnection) downloadUrl.openConnection();
+
+            httpURLConnection.setRequestMethod("GET");
 
             httpURLConnection.setRequestProperty("Range", "bytes=" + startChunkSize + "-" + endChunkSize);
 
@@ -25,7 +28,7 @@ public class Connection {
 
             int statusCode = httpURLConnection.getResponseCode();
 
-            InputStream inputStream;
+            InputStream inputStream = null;
 
             switch (statusCode) {
                 case HttpURLConnection.HTTP_OK: // 200
@@ -61,6 +64,17 @@ public class Connection {
             callBack.errorOccurred("Ensure that the url input is correct:" + exception.getMessage());
         } catch (IOException exception) {
             callBack.errorOccurred(exception.getMessage());
+        } finally {
+            if (httpURLConnection != null) {
+                /*// The normal practice is to disconnect the connection after use, upon researching some school of thought thinks it is too expensive to open and close socket everytime.
+                    - I was able to achieve the disconnect for the serial download case but not for the parallel download which involves multiple threads.
+                 - The connection has to be open while this operation is ongoing.
+                 - https://techblog.bozho.net/caveats-of-httpurlconnection/*/
+
+                if (!isParallelDownload) {
+                    httpURLConnection.disconnect();
+                }
+            }
         }
     }
 }

@@ -38,7 +38,6 @@ public class FetchController {
 
     private boolean isExternalStorage;
 
-
     private Thread myThread = null;
 
     public FetchController() {
@@ -113,7 +112,7 @@ public class FetchController {
                     }
 
                     if (!(outputFileSize >= totalDownloadSize)) {
-                        connection.downloadFileByRange(url, new IConnectionFileDownload() {
+                        connection.downloadFileByRange(url, false, new IConnectionFileDownload() {
                             @Override
                             public void getFileResult(InputStream inputStream) {
 
@@ -294,13 +293,12 @@ public class FetchController {
 
     // Private Methods
     private Callable<InputStream> parallelRunnableObject(final String url, final long startChunkSize, final long endChunkSize, final IFetchFileDownload callBack) {
-
         Callable<InputStream> chunkRequest = new Callable<InputStream>() {
             @Override
             public InputStream call() throws Exception {
                 final InputStream[] chunkInputStream = {null};
 
-                connection.downloadFileByRange(url, new IConnectionFileDownload() {
+                connection.downloadFileByRange(url, true, new IConnectionFileDownload() {
                     @Override
                     public void getFileResult(InputStream inputStream) {
 
