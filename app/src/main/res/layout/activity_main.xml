@@ -224,8 +224,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_above="@id/buttonLayout"
+                android:orientation="horizontal"
                 android:weightSum="1">
 
                 <Switch
@@ -233,8 +233,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:gravity="center"
                     android:layout_weight="0.5"
+                    android:gravity="center"
                     android:text="@string/activate_parallel_download"
                     android:textSize="10sp"
                     android:visibility="visible" />
@@ -244,14 +244,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:gravity="center"
                     android:layout_weight="0.5"
+                    android:gravity="center"
                     android:text="Use External Storage"
                     android:textSize="10sp"
                     android:visibility="visible" />
 
             </LinearLayout>
-
 
 
             <LinearLayout
