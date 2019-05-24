@@ -1,15 +1,18 @@
 package com.victoradewoye.downloadbooster;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     TextView thirdPickerValueProtocol;
     @Bind(R.id.toggleSwitch)
     Switch toggleSwitch;
+    @Bind(R.id.storageToggleSwitch)
+    Switch storageToggleSwitch;
     @Bind(R.id.parallelDownload)
     Button parallelDownload;
     @Bind(R.id.serialDownload)
@@ -60,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar downloadProgressBar;
     private BroadcastReceiver progressBarDownloadStatus;
     private String urlValue;
+    private boolean isExternalStorage;
 
 
     @Override
@@ -69,23 +75,30 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        downloadProgressBar = findViewById(R.id.downloadProgressBar);
+        try {
 
-        this.downloadProgressBar.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+            downloadProgressBar = findViewById(R.id.downloadProgressBar);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             this.downloadProgressBar.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                this.downloadProgressBar.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+            }
+
+            FetchController.shared().setUpFetchController(this);
+
+            this.setPicker();
+
+            this.setUpSwitch();
+
+            this.setUpStorageSwitch();
+
+            this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
+
+            FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+        } catch (Exception exception) {
+            Toast.makeText(this, "An error occurred: " + exception.getMessage() + " please re-install the app", Toast.LENGTH_SHORT).show();
         }
-
-        FetchController.shared().setUpFetchController(this);
-
-        this.setPicker();
-
-        this.setUpSwitch();
-
-        this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
-
-        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
     }
 
     @Override
@@ -138,6 +151,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setPicker() {
+        firstPickerValueProtocol.setSaveFromParentEnabled(false);
+        firstPickerValueProtocol.setSaveEnabled(false);
+        secondPickerValueProtocol.setSaveFromParentEnabled(false);
+        secondPickerValueProtocol.setSaveEnabled(false);
 
         this.firstPickerValueProtocol.setDisplayedValues(null);
         this.secondPickerValueProtocol.setDisplayedValues(null);
@@ -172,9 +189,9 @@ public class MainActivity extends AppCompatActivity {
         this.firstPickerValueProtocol.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                ArrayList<Integer> chunkSizeArray = FetchController.shared().factorsOf(firstPickerValueProtocol.getValue());
+                ArrayList<Integer> secondPickerChunkSizeArray = FetchController.shared().factorsOf(firstPickerValueProtocol.getValue());
 
-                String[] factorsArray = Utility.convertIntegerArrayListToStringArray(chunkSizeArray);
+                String[] factorsArray = Utility.convertIntegerArrayListToStringArray(secondPickerChunkSizeArray);
 
                 secondPickerValueProtocol.setDisplayedValues(null);
 
@@ -185,10 +202,10 @@ public class MainActivity extends AppCompatActivity {
                 int chunkSize = secondPickerValueProtocol.getValue();
 
                 if (chunkSize != 0) {
-                    thirdPickerValueProtocol.setText(String.valueOf(newVal / chunkSize));
+                    thirdPickerValueProtocol.setText(String.valueOf(picker.getValue() / secondPickerChunkSizeArray.get(chunkSize - 1)));
                 }
 
-                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
+                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerChunkSizeArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
             }
         });
 
@@ -196,14 +213,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
 
+                ArrayList<Integer> chunkArray = FetchController.shared().factorsOf(firstPickerValueProtocol.getValue());
+
                 int dDownloadSize = firstPickerValueProtocol.getValue();
                 int chunkSize = picker.getValue();
 
                 if (chunkSize != 0) {
-                    thirdPickerValueProtocol.setText(String.valueOf(dDownloadSize / chunkSize));
+                    thirdPickerValueProtocol.setText(String.valueOf(dDownloadSize / chunkArray.get(chunkSize - 1)));
                 }
 
-                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue());
+                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()),chunkArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
             }
 
         });
@@ -236,7 +255,31 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void fullDownload(View view) {
+    private void setUpStorageSwitch() {
+        isExternalStorage = false;
+
+        this.storageToggleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+                        } else {
+                            isExternalStorage = true;
+                        }
+                    } else {
+                        isExternalStorage = true;
+                    }
+                } else {
+                    isExternalStorage = false;
+                }
+            }
+        });
+    }
+
+    //This method is called when the serial download button is clicked
+    public void serialDownload(View view) {
         FetchController.shared().fetchFile(urlValue, new IFetchFileDownload() {
             @Override
             public void onComplete(Object fileObject) {
@@ -249,17 +292,19 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void errorOccured(String error) {
+            public void errorOccurred(String error) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, " The specified file has been downloaded or Download Failed, Please try again later", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
     }
 
+
+    //This method is called when the parallel download button is clicked
     public void parallelDownload(View view) {
         FetchController.shared().parallelFetchFile(urlValue, new IFetchFileDownload() {
             @Override
@@ -273,11 +318,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void errorOccured(String error) {
+            public void errorOccurred(String error) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, " Download Failed,", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, " The specified file has been downloaded or Download Failed, Please try again later", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -308,5 +353,15 @@ public class MainActivity extends AppCompatActivity {
             parallelDownload.getBackground().setColorFilter(getResources().getColor(R.color.unselectedGrey), PorterDuff.Mode.SRC_ATOP);
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 0:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    isExternalStorage = true;
+                }
+        }
     }
 }

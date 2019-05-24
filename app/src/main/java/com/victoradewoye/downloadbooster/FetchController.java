@@ -3,6 +3,7 @@ package com.victoradewoye.downloadbooster;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -27,10 +28,13 @@ public class FetchController {
     private Connection connection;
     private Context context;
     private File fileStorageDirectory;
+    private File externalFileStorageDirectory;
 
     private int numberOfChunks;
     private long chunkSize;
-    private long mtotalDownloadSize;
+    private long downloadSize;
+
+    private boolean isExternalStorage;
 
 
     private Thread myThread = null;
@@ -54,7 +58,11 @@ public class FetchController {
 
         this.fileStorageDirectory = new File(context.getFilesDir() + "/CarnegieDownload/");
 
+        this.externalFileStorageDirectory =  new File (Environment.getExternalStorageDirectory() + "/CarnegieDownload/");
+
         this.checkDirectory(this.fileStorageDirectory);
+
+        this.checkDirectory(this.externalFileStorageDirectory);
     }
 
     private void checkDirectory(File file) {
@@ -67,13 +75,15 @@ public class FetchController {
 
     }
 
-    public void setUpParameters(int numberOfChunks, long chunkSize, long totalDownloadSize) {
+    public void setUpParameters(int numberOfChunks, long chunkSize, long totalDownloadSize, boolean isExternalStorage) {
 
         this.numberOfChunks = numberOfChunks;
 
         this.chunkSize = chunkSize * 1048577;
 
-        this.mtotalDownloadSize = totalDownloadSize * 1048577;
+        this.downloadSize = totalDownloadSize * 1048577;
+
+        this.isExternalStorage = isExternalStorage;
     }
 
     public void fetchFile(final String url, final IFetchFileDownload callBack) {
@@ -82,7 +92,7 @@ public class FetchController {
             public void run() {
                 int maxNumberOfServerRequest = numberOfChunks;
 
-                final long totalDownloadSize = mtotalDownloadSize;
+                final long totalDownloadSize = downloadSize;
 
                 long endChunkSize = chunkSize; // this the equivalent of 1MB in bytes.
 
@@ -90,7 +100,7 @@ public class FetchController {
 
                 String path = fileStorageDirectory.getPath();
 
-                final File outputFile = new File(path + File.separator + "384Test.jar");
+                final File outputFile = isExternalStorage ? new File(externalFileStorageDirectory.getPath() + File.separator + "384Test.jar") : new File(path + File.separator + "384Test.jar");
 
                 for (int i = 0; i < maxNumberOfServerRequest; i++) {
 
@@ -127,6 +137,8 @@ public class FetchController {
 
                                         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                                     }
+                                    outputStream.flush();
+
                                     outputStream.close();
 
                                     if (outputFile.length() >= totalDownloadSize) {
@@ -134,17 +146,17 @@ public class FetchController {
                                     }
 
                                 } catch (Exception exception) {
-                                    callBack.errorOccured(exception.getMessage());
+                                    callBack.errorOccurred(exception.getMessage());
                                 }
                             }
 
                             @Override
-                            public void errorOccured(String error) {
+                            public void errorOccurred(String error) {
                                 Log.i("Report", "errorOccured: ");
                             }
                         }, startChunkSize, endChunkSize);
 
-                        endChunkSize = endChunkSize + 1048577;
+                        endChunkSize += chunkSize;
                     } else {
                         Log.i("iNFO", "THE SPECIFIED FILE RANGE HAS BEEN DOWNLOADED: ");
 
@@ -165,7 +177,7 @@ public class FetchController {
 
                 final List<Future<InputStream>> futures = new ArrayList<>();
 
-                final long totalDownloadSize = mtotalDownloadSize;
+                final long totalDownloadSize = downloadSize;
 
                 long endChunkSize = chunkSize; // this the equivalent of 1MB in bytes. and it is also configurable
 
@@ -173,12 +185,12 @@ public class FetchController {
 
                 String path = fileStorageDirectory.getPath();
 
-                final File outputFile = new File(path + File.separator + "384Test.jar");
+                final File outputFile = isExternalStorage ? new File(externalFileStorageDirectory.getPath() + File.separator + "384Test.jar") : new File(path + File.separator + "384Test.jar");
 
                 if (!(outputFile.length() >= totalDownloadSize)) {
                     for (long i = startChunkSize; i < totalDownloadSize; i += chunkSize) {
 
-                        Future<InputStream> future = executor.submit(FetchController.shared().parallelRunnableObject(url, i, endChunkSize));
+                        Future<InputStream> future = executor.submit(parallelRunnableObject(url, i, endChunkSize, callBack));
 
                         futures.add(future);
 
@@ -216,6 +228,8 @@ public class FetchController {
                                 }
 
                             }
+                            outputStream.flush();
+
                             outputStream.close();
 
                             if (outputFile.length() >= totalDownloadSize) {
@@ -223,9 +237,9 @@ public class FetchController {
                             }
 
                         } catch (InterruptedException | ExecutionException ex) {
-                            callBack.errorOccured(ex.getMessage());
+                            callBack.errorOccurred(ex.getMessage());
                         } catch (Exception exception) {
-                            callBack.errorOccured(exception.getMessage());
+                            callBack.errorOccurred(exception.getMessage());
                         }
                     }
 
@@ -239,7 +253,7 @@ public class FetchController {
 
 //                    myThread.interrupt();
                 } else {
-                    Log.i("iNFO", "THE SPECIFIED FILE RANGE HAS BEEN DOWNLOADED: ");
+                    callBack.errorOccurred("The specified file size has been downloaded");
                 }
             }
         });
@@ -248,34 +262,7 @@ public class FetchController {
 
     }
 
-    private Callable<InputStream> parallelRunnableObject(final String url, final long startChunkSize, final long endChunkSize) {
-
-        Callable<InputStream> chunkRequest = new Callable<InputStream>() {
-            @Override
-            public InputStream call() throws Exception {
-                final InputStream[] chunkInputStream = {null};
-
-                connection.downloadFileByRange(url, new IConnectionFileDownload() {
-                    @Override
-                    public void getFileResult(InputStream inputStream) {
-
-                        chunkInputStream[0] = inputStream;
-                    }
-
-                    @Override
-                    public void errorOccured(String error) {
-                        Log.i("Report", "errorOccured: ");
-                    }
-                }, startChunkSize, endChunkSize);
-
-                return chunkInputStream[0];
-            }
-        };
-
-        return chunkRequest;
-    }
-
-    public ArrayList<Integer> factorsOf(int num) {
+    public ArrayList<Integer> factorsOf(int num) { // This method returns the factors of download size and uses it as different chunk sizes the user can pick from
         ArrayList<Integer> factors = new ArrayList<>();
 
         for (int i = 1; i <= Math.sqrt(num); i++) {
@@ -299,6 +286,34 @@ public class FetchController {
         return factors;
     }
 
+
+    // Private Methods
+    private Callable<InputStream> parallelRunnableObject(final String url, final long startChunkSize, final long endChunkSize, final IFetchFileDownload callBack) {
+
+        Callable<InputStream> chunkRequest = new Callable<InputStream>() {
+            @Override
+            public InputStream call() throws Exception {
+                final InputStream[] chunkInputStream = {null};
+
+                connection.downloadFileByRange(url, new IConnectionFileDownload() {
+                    @Override
+                    public void getFileResult(InputStream inputStream) {
+
+                        chunkInputStream[0] = inputStream;
+                    }
+
+                    @Override
+                    public void errorOccurred(String error) {
+                        callBack.errorOccurred("Error occurred while trying to download the file, Please try again later");
+                    }
+                }, startChunkSize, endChunkSize);
+
+                return chunkInputStream[0];
+            }
+        };
+
+        return chunkRequest;
+    }
 
     private long getCacheFolderSize(File file) {
         long size = 0;
@@ -334,7 +349,7 @@ public class FetchController {
     }
 
     protected String getTotalCacheFileSize() {
-        long totalSize = getCacheFolderSize(this.fileStorageDirectory);
+        long totalSize = isExternalStorage ? getCacheFolderSize(this.externalFileStorageDirectory):getCacheFolderSize(this.fileStorageDirectory);
 
         return readableFolderSize(totalSize);
     }
@@ -364,5 +379,4 @@ public class FetchController {
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
     }
-
 }
