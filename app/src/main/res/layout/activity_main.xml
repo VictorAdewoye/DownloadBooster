@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,13 +12,13 @@
     <android.support.design.card.MaterialCardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginStart="20dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="5dp"
-        android:layout_weight="1"
+        android:layout_weight="0.5"
         app:cardCornerRadius="30dp"
         app:cardElevation="6dp"
         app:cardUseCompatPadding="true"
@@ -66,17 +66,16 @@
 
     <android.support.design.card.MaterialCardView
         android:id="@+id/cardView2"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_width="391dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cardView"
         android:layout_marginStart="20dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="5dp"
-        android:layout_weight="1"
+        android:layout_weight="2"
         app:cardCornerRadius="30dp"
         app:cardElevation="6dp"
         app:cardUseCompatPadding="true"
-        app:contentPadding="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -136,8 +135,8 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:gravity="center"
                         android:ems="10"
+                        android:gravity="center"
                         android:text="# of Chunks"
                         android:textStyle="bold" />
 
@@ -146,36 +145,44 @@
                 <TableRow
                     android:id="@+id/tableRow14"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="176dp"
                     android:layout_gravity="center"
                     android:weightSum="3">
 
                     <NumberPicker
                         android:id="@+id/firstPickerValueProtocol"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="176dp"
                         android:layout_column="0"
+                        android:layout_marginStart="5dp"
                         android:layout_marginEnd="5dp"
                         android:layout_weight="1"
-                        android:descendantFocusability="blocksDescendants" />
+                        android:clickable="true"
+                        android:descendantFocusability="blocksDescendants"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center"
+                        android:scaleY="1" />
 
                     <NumberPicker
                         android:id="@+id/secondPickerValueProtocol"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="176dp"
                         android:layout_column="1"
                         android:layout_marginStart="5dp"
                         android:layout_weight="1"
-                        android:descendantFocusability="blocksDescendants" />
+                        android:descendantFocusability="blocksDescendants"
+                        android:dividerPadding="20dp"
+                        android:scaleY="1" />
 
                     <TextView
                         android:id="@+id/thirdPickerValueProtocol"
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
+                        android:layout_height="176dp"
                         android:layout_column="2"
-                        android:gravity="center"
                         android:layout_gravity="end|center_vertical"
                         android:layout_weight="1"
+                        android:gravity="center"
                         android:text="23"
                         android:textSize="20sp" />
 
@@ -190,11 +197,12 @@
     <android.support.design.card.MaterialCardView
         android:id="@+id/cardView3"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cardView2"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="1dp"
         android:layout_weight="1"
         android:background="@color/colorAccent"
         app:cardCornerRadius="30dp"
@@ -208,39 +216,60 @@
         app:strokeColor="@android:color/black"
         app:strokeWidth="1dp">
 
-            <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_above="@id/buttonLayout"
+                android:weightSum="1">
 
-                    <Switch
-                        android:id="@+id/toggleSwitch"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_above="@id/buttonLayout"
-                        android:gravity="center"
-                        android:visibility="visible"
-                        android:textSize="14sp"
-                        android:text="@string/activate_parallel_download" />
+                <Switch
+                    android:id="@+id/toggleSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:layout_weight="0.5"
+                    android:text="@string/activate_parallel_download"
+                    android:textSize="10sp"
+                    android:visibility="visible" />
+
+                <Switch
+                    android:id="@+id/storageToggleSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:layout_weight="0.5"
+                    android:text="Use External Storage"
+                    android:textSize="10sp"
+                    android:visibility="visible" />
+
+            </LinearLayout>
+
+
 
             <LinearLayout
                 android:id="@+id/buttonLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:weightSum="1"
-                android:layout_marginTop="10dp">
+                android:layout_height="35dp"
+                android:layout_marginTop="1dp"
+                android:weightSum="1">
 
                 <Button
                     android:id="@+id/serialDownload"
                     android:layout_width="100dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:layout_gravity="top"
-                    android:layout_margin="5dp"
+                    android:layout_margin="2dp"
                     android:layout_weight="0.5"
                     android:background="@drawable/rounded_button"
-                    android:onClick="fullDownload"
+                    android:onClick="serialDownload"
                     android:text="Serial"
                     android:textColor="@android:color/black"
                     android:textStyle="bold" />
@@ -254,9 +283,9 @@
                 <Button
                     android:id="@+id/parallelDownload"
                     android:layout_width="100dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:layout_gravity="top"
-                    android:layout_margin="5dp"
+                    android:layout_margin="2dp"
                     android:layout_weight="0.5"
                     android:background="@drawable/rounded_button"
                     android:onClick="parallelDownload"
@@ -269,42 +298,43 @@
                 android:id="@+id/downloadProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_below="@+id/buttonLayout"
                 android:layout_height="10dp"
-
-                android:progress="27"
+                android:layout_below="@+id/buttonLayout"
+                android:progress="1"
                 android:scaleY="2" />
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:weightSum="1">
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:id="@+id/fileSize"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_weight="0.7"
-                            android:text="Downloaded File Size: Zero KB " />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
-                        <Button
-                            android:layout_width="0dp"
-                            android:id="@+id/deleteButton"
-                            android:text="DELETE FILE"
-                            android:layout_weight="0.3"
-                            android:layout_gravity="center"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
+                <TextView
+                    android:id="@+id/fileSize"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.7"
+                    android:text="Downloaded File Size: Zero KB " />
+
+                <Button
+                    android:id="@+id/deleteButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.3"
+                    android:text="DELETE FILE"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
 
         </LinearLayout>
 
 
     </android.support.design.card.MaterialCardView>
-</LinearLayout>
+</RelativeLayout>
 
 
 
