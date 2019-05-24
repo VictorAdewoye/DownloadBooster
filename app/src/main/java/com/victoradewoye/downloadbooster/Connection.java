@@ -1,9 +1,9 @@
 package com.victoradewoye.downloadbooster;
 
-import android.util.Log;
-
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Connection {
@@ -41,8 +41,6 @@ public class Connection {
                     break;
 
                 case HttpURLConnection.HTTP_PARTIAL:
-                    Log.i("called", "partial: ");
-
                     inputStream = httpURLConnection.getInputStream();
 
                     if (inputStream != null) {
@@ -55,13 +53,14 @@ public class Connection {
 
                 case HttpURLConnection.HTTP_FORBIDDEN:
                 case HttpURLConnection.HTTP_NOT_FOUND:
-                    callBack.errorOccurred("No File Found");
+                    callBack.errorOccurred("No Server File Found");
 
                     break;
             }
-        } catch (Exception exception) {
+        } catch (MalformedURLException exception) {
+            callBack.errorOccurred("Ensure that the url input is correct:" + exception.getMessage());
+        } catch (IOException exception) {
             callBack.errorOccurred(exception.getMessage());
         }
-
     }
 }
