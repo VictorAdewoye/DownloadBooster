@@ -176,7 +176,7 @@
                         android:scaleY="1" />
 
                     <TextView
-                        android:id="@+id/thirdPickerValueProtocol"
+                        android:id="@+id/numOfChunksTextView"
                         android:layout_width="0dp"
                         android:layout_height="176dp"
                         android:layout_column="2"
@@ -299,7 +299,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="10dp"
                 android:layout_below="@+id/buttonLayout"
-                android:progress="1"
+                android:progress="0"
                 android:scaleY="2" />
 
             <LinearLayout
