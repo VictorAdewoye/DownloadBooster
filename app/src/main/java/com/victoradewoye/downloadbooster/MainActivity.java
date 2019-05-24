@@ -46,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     NumberPicker firstPickerValueProtocol;
     @Bind(R.id.secondPickerValueProtocol)
     NumberPicker secondPickerValueProtocol;
-    @Bind(R.id.thirdPickerValueProtocol)
-    TextView thirdPickerValueProtocol;
+    @Bind(R.id.numOfChunksTextView)
+    TextView numOfChunksTextView;
     @Bind(R.id.toggleSwitch)
     Switch toggleSwitch;
     @Bind(R.id.storageToggleSwitch)
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
             this.sourceUrl.setText("http://f39bf6aa4a.bwtest-aws.pravala.com/384MB.jar");
 
-            FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+            FetchController.shared().setUpParameters(Integer.valueOf(this.numOfChunksTextView.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
         } catch (Exception exception) {
             Toast.makeText(this, "An error occurred: " + exception.getMessage() + " please re-install the app", Toast.LENGTH_SHORT).show();
         }
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         secondPickerValueProtocol.setDisplayedValues(factorsArray);
         this.secondPickerValueProtocol.setWrapSelectorWheel(false);
 
-        this.thirdPickerValueProtocol.setText(String.valueOf((firstPickerValueProtocol.getValue()) / secondPickerValueProtocol.getValue()));
+        this.numOfChunksTextView.setText(String.valueOf((firstPickerValueProtocol.getValue()) / secondPickerValueProtocol.getValue()));
 
         this.firstPickerValueProtocol.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
@@ -202,10 +202,10 @@ public class MainActivity extends AppCompatActivity {
                 int chunkSize = secondPickerValueProtocol.getValue();
 
                 if (chunkSize != 0) {
-                    thirdPickerValueProtocol.setText(String.valueOf(picker.getValue() / secondPickerChunkSizeArray.get(chunkSize - 1)));
+                    numOfChunksTextView.setText(String.valueOf(picker.getValue() / secondPickerChunkSizeArray.get(chunkSize - 1)));
                 }
 
-                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), secondPickerChunkSizeArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
+                FetchController.shared().setUpParameters(Integer.valueOf(numOfChunksTextView.getText().toString()), secondPickerChunkSizeArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
             }
         });
 
@@ -219,10 +219,10 @@ public class MainActivity extends AppCompatActivity {
                 int chunkSize = picker.getValue();
 
                 if (chunkSize != 0) {
-                    thirdPickerValueProtocol.setText(String.valueOf(dDownloadSize / chunkArray.get(chunkSize - 1)));
+                    numOfChunksTextView.setText(String.valueOf(dDownloadSize / chunkArray.get(chunkSize - 1)));
                 }
 
-                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), chunkArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
+                FetchController.shared().setUpParameters(Integer.valueOf(numOfChunksTextView.getText().toString()), chunkArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
             }
 
         });
@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
     //This method is called when the serial download button is clicked
     public void serialDownload(View view) {
-        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+        FetchController.shared().setUpParameters(Integer.valueOf(this.numOfChunksTextView.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
 
         FetchController.shared().fetchFile(urlValue, new IFetchFileDownload() {
             @Override
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
     //This method is called when the parallel download button is clicked
     public void parallelDownload(View view) {
-        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+        FetchController.shared().setUpParameters(Integer.valueOf(this.numOfChunksTextView.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
 
         FetchController.shared().parallelFetchFile(urlValue, new IFetchFileDownload() {
             @Override
