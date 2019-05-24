@@ -114,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
                     final String action = intent.getAction();
-                    if (action != null && action.equals("update")) {
+                    if (action != null && action.equals("progressUpdate")) {
 
-                        if (intent.hasExtra("update_Value") && intent.hasExtra("progress_bar_max_value")) {
-                            final long progress = intent.getLongExtra("update_Value", 0L);
+                        if (intent.hasExtra("progressUpdate_Value") && intent.hasExtra("progress_bar_max_value")) {
+                            final long progress = intent.getLongExtra("progressUpdate_Value", 0L);
 
                             final long maxValue = intent.getLongExtra("progress_bar_max_value", 0L);
 
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
         IntentFilter intentFilter = new IntentFilter();
 
-        intentFilter.addAction("update");
+        intentFilter.addAction("progressUpdate");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(this.progressBarDownloadStatus, intentFilter);
     }
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                     thirdPickerValueProtocol.setText(String.valueOf(dDownloadSize / chunkArray.get(chunkSize - 1)));
                 }
 
-                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()),chunkArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
+                FetchController.shared().setUpParameters(Integer.valueOf(thirdPickerValueProtocol.getText().toString()), chunkArray.get(chunkSize - 1), firstPickerValueProtocol.getValue(), isExternalStorage);
             }
 
         });
@@ -280,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
 
     //This method is called when the serial download button is clicked
     public void serialDownload(View view) {
+        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+
         FetchController.shared().fetchFile(urlValue, new IFetchFileDownload() {
             @Override
             public void onComplete(Object fileObject) {
@@ -306,6 +308,8 @@ public class MainActivity extends AppCompatActivity {
 
     //This method is called when the parallel download button is clicked
     public void parallelDownload(View view) {
+        FetchController.shared().setUpParameters(Integer.valueOf(this.thirdPickerValueProtocol.getText().toString()), this.secondPickerValueProtocol.getValue(), firstPickerValueProtocol.getValue(), isExternalStorage);
+
         FetchController.shared().parallelFetchFile(urlValue, new IFetchFileDownload() {
             @Override
             public void onComplete(Object fileObject) {

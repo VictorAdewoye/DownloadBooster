@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,7 +42,7 @@ public class FetchController {
     private Thread myThread = null;
 
     public FetchController() {
-
+        // Empty Constructor
     }
 
     protected static FetchController shared() {
@@ -58,7 +60,7 @@ public class FetchController {
 
         this.fileStorageDirectory = new File(context.getFilesDir() + "/CarnegieDownload/");
 
-        this.externalFileStorageDirectory =  new File (Environment.getExternalStorageDirectory() + "/CarnegieDownload/");
+        this.externalFileStorageDirectory = new File(Environment.getExternalStorageDirectory() + "/CarnegieDownload/");
 
         this.checkDirectory(this.fileStorageDirectory);
 
@@ -69,7 +71,7 @@ public class FetchController {
         if (!file.exists()) {
             if (!file.mkdirs()) ;
             {
-                //TODO: Handle Error
+                Log.e("Error", "File is absent");
             }
         }
 
@@ -79,7 +81,7 @@ public class FetchController {
 
         this.numberOfChunks = numberOfChunks;
 
-        this.chunkSize = chunkSize * 1048577;
+        this.chunkSize = chunkSize * 1048577; // the multiplier factor is equal to 1MiB = 1048577
 
         this.downloadSize = totalDownloadSize * 1048577;
 
@@ -94,7 +96,7 @@ public class FetchController {
 
                 final long totalDownloadSize = downloadSize;
 
-                long endChunkSize = chunkSize; // this the equivalent of 1MB in bytes.
+                long endChunkSize = chunkSize;
 
                 long startChunkSize = 0;
 
@@ -129,9 +131,9 @@ public class FetchController {
 
                                         sizeofFileDownloaded += bytesRead;
 
-                                        Intent intent = new Intent("update");
+                                        Intent intent = new Intent("progressUpdate");
 
-                                        intent.putExtra("update_Value", sizeofFileDownloaded);
+                                        intent.putExtra("progressUpdate_Value", sizeofFileDownloaded);
 
                                         intent.putExtra("progress_bar_max_value", totalDownloadSize);
 
@@ -145,6 +147,8 @@ public class FetchController {
                                         callBack.onComplete(outputFile);
                                     }
 
+                                } catch (IOException exception) {
+                                    callBack.errorOccurred(exception.getMessage());
                                 } catch (Exception exception) {
                                     callBack.errorOccurred(exception.getMessage());
                                 }
@@ -152,7 +156,7 @@ public class FetchController {
 
                             @Override
                             public void errorOccurred(String error) {
-                                Log.i("Report", "errorOccured: ");
+                                callBack.errorOccurred(error);
                             }
                         }, startChunkSize, endChunkSize);
 
@@ -188,19 +192,20 @@ public class FetchController {
                 final File outputFile = isExternalStorage ? new File(externalFileStorageDirectory.getPath() + File.separator + "384Test.jar") : new File(path + File.separator + "384Test.jar");
 
                 if (!(outputFile.length() >= totalDownloadSize)) {
-                    for (long i = startChunkSize; i < totalDownloadSize; i += chunkSize) {
+                    try {
+                        for (long i = startChunkSize; i < totalDownloadSize; i += chunkSize) {
 
-                        Future<InputStream> future = executor.submit(parallelRunnableObject(url, i, endChunkSize, callBack));
+                            Future<InputStream> future = executor.submit(parallelRunnableObject(url, i, endChunkSize, callBack));
 
-                        futures.add(future);
+                            futures.add(future);
 
-                        endChunkSize += chunkSize;
+                            endChunkSize += chunkSize;
 
-                    }
+                        }
 
-                    for (Future<InputStream> f : futures) {
-                        final long outputFileSize = outputFile.length();
-                        try {
+                        for (Future<InputStream> f : futures) {
+                            final long outputFileSize = outputFile.length();
+
                             OutputStream outputStream = outputFile.length() == 0 ? new FileOutputStream(outputFile) : new FileOutputStream(outputFile, true);
 
                             byte[] buffer = new byte[16 * 1500];
@@ -218,9 +223,9 @@ public class FetchController {
 
                                     sizeofFileDownloaded += bytesRead;
 
-                                    Intent intent = new Intent("update");
+                                    Intent intent = new Intent("progressUpdate");
 
-                                    intent.putExtra("update_Value", sizeofFileDownloaded);
+                                    intent.putExtra("progressUpdate_Value", sizeofFileDownloaded);
 
                                     intent.putExtra("progress_bar_max_value", totalDownloadSize);
 
@@ -235,23 +240,23 @@ public class FetchController {
                             if (outputFile.length() >= totalDownloadSize) {
                                 callBack.onComplete(outputFile);
                             }
-
-                        } catch (InterruptedException | ExecutionException ex) {
-                            callBack.errorOccurred(ex.getMessage());
-                        } catch (Exception exception) {
-                            callBack.errorOccurred(exception.getMessage());
                         }
-                    }
 
-                    try {
                         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+                        executor.shutdown();
+
+                        myThread.interrupt();
+
+                    } catch (IOException ex) {
+                        callBack.errorOccurred(ex.getMessage());
+                    } catch (InterruptedException | ExecutionException ex) {
+                        callBack.errorOccurred(ex.getMessage());
+                    } catch (CancellationException exception) {
+                        callBack.errorOccurred(exception.getMessage());
+                    } catch (Exception exception) {
+                        callBack.errorOccurred(exception.getMessage());
                     }
-
-                    executor.shutdown();
-
-//                    myThread.interrupt();
                 } else {
                     callBack.errorOccurred("The specified file size has been downloaded");
                 }
@@ -349,14 +354,14 @@ public class FetchController {
     }
 
     protected String getTotalCacheFileSize() {
-        long totalSize = isExternalStorage ? getCacheFolderSize(this.externalFileStorageDirectory):getCacheFolderSize(this.fileStorageDirectory);
+        long totalSize = isExternalStorage ? getCacheFolderSize(this.externalFileStorageDirectory) : getCacheFolderSize(this.fileStorageDirectory);
 
         return readableFolderSize(totalSize);
     }
 
     // Delete Files of a specific Directory Folder.
     protected void clearDirectory() {
-        File directoryFile = this.fileStorageDirectory;
+        File directoryFile = isExternalStorage ? this.externalFileStorageDirectory : this.fileStorageDirectory;
 
         if (directoryFile.isDirectory()) {
             File fileToBeDeleted = null;
@@ -370,11 +375,11 @@ public class FetchController {
         } else if (directoryFile.isFile()) {
             directoryFile.delete();
         } else {
-            Log.i("Error", "emptyDirectory: Did not work");
+            Log.i("Error", "emptyDirectory: File is empty");
         }
 
-        if (getCacheFolderSize(this.fileStorageDirectory) <= 0) {
-            Intent intent = new Intent("update");
+        if (getCacheFolderSize(directoryFile) <= 0) {
+            Intent intent = new Intent("progressUpdate");
 
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
